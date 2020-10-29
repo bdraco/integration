@@ -4,6 +4,7 @@ from homeassistant.helpers.json import JSONEncoder
 
 from custom_components.hacs.const import VERSION_STORAGE
 
+SAVE_DELAY = 120
 
 def get_store_for_key(hass, key):
     """Create a Store object for the key."""
@@ -24,7 +25,7 @@ async def async_load_from_store(hass, key):
 
 async def async_save_to_store(hass, key, data):
     """Generate dynamic data to store and save it to the filesystem."""
-    await get_store_for_key(hass, key).async_save(data)
+    get_store_for_key(hass, key).async_delay_save(lambda: data, SAVE_DELAY)
 
 
 async def async_remove_store(hass, key):
