@@ -31,7 +31,7 @@ class HacsData:
         if self.hacs.status.background_task or self.hacs.system.disabled:
             return
 
-        self.logger.debug("Saving data")
+        self.logger.debug("Saving data", exc_info=True)
 
         # Hacs
         await async_save_to_store(
