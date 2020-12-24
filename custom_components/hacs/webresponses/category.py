@@ -63,7 +63,17 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
             servefile,
             etag,
         )
-        return web.Response(status=304)
+        response = web.StreamResponse(status=304)
+        response.content_type = None
+        response.content_length = None
+        _LOGGER.debug(
+            "Serving %s from %s with etag %s (not-modified): [%s]",
+            requested_file,
+            servefile,
+            etag,
+            response
+        )        
+        return response
 
     if etag is not None:
         _LOGGER.debug(
