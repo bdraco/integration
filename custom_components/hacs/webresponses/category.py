@@ -52,6 +52,14 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
     etag = await async_get_etag(servefile)
     if_none_match_header = request.headers.get("if-none-match")
 
+    _LOGGER.debug(
+        "Serving %s from %s with etag %s -- if-none-match=%s",
+        requested_file,
+        servefile,
+        etag,
+        if_none_match_header
+    )    
+
     if (
         etag is not None
         and if_none_match_header is not None
