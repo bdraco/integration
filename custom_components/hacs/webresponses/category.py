@@ -77,7 +77,7 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
             etag,
         )
         response = web.FileResponse(servefile)
-        response.headers["Cache-Control"] = "must-revalidate, max-age=0"
+        response.headers["Cache-Control"] = "no-cache"
         response.headers["Etag"] = etag
         return response
 
