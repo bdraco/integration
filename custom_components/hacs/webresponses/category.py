@@ -51,7 +51,6 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
     """Serve a static file with an etag."""
     etag = await async_get_etag(servefile)
     if_none_match_header = request.headers.get("if-none-match")
-    if_modified_since_header = request.headers.get("if-modified-since")
 
     _LOGGER.debug(
         "Serving %s from %s with etag %s -- if-none-match=%s",
@@ -75,13 +74,6 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
         response = web.StreamResponse(status=304)
         response.content_type = None
         response.content_length = None
-        _LOGGER.debug(
-            "Serving %s from %s with etag %s (not-modified): [%s]",
-            requested_file,
-            servefile,
-            etag,
-            response
-        )        
         return response
 
     if etag is not None:
@@ -94,9 +86,6 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
         response = web.FileResponse(servefile)
         response.headers["Cache-Control"] = "must-revalidate, max-age=0"
         response.headers["Etag"] = etag
-        if if_modified_since_header is not None:
-            # Ensure new etags get replaced in the cache
-            response.headers["Last-Modified"] = if_modified_since_header
         return response
 
     _LOGGER.error(
