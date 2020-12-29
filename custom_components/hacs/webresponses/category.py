@@ -75,10 +75,11 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
 
     if etag is not None:
         _LOGGER.debug(
-            "Serving %s from %s with etag %s (not cached)",
+            "Serving %s from %s with etag %s (not cached) headers=%s",
             requested_file,
             servefile,
             etag,
+            request.headers
         )
         response = web.FileResponse(servefile)
         response.headers["Cache-Control"] = "no-cache"
