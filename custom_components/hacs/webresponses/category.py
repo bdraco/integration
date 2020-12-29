@@ -1,5 +1,5 @@
 from aiohttp import web
-
+import mimetypes
 from custom_components.hacs.helpers.functions.logger import getLogger
 from custom_components.hacs.helpers.functions.path_exsist import async_path_exsist
 from custom_components.hacs.helpers.functions.file_etag import async_get_etag
@@ -64,9 +64,8 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
             etag,
         )
         response = web.StreamResponse(status=304)
-        response.content_type = None
+        response.content_type = mimetypes.guess_type(servefile)[0]
         response.content_length = None
-#        response.body = None
         return response
 
     if etag is not None:
