@@ -1,8 +1,5 @@
-import mimetypes
-
 from aiohttp import web
 
-from custom_components.hacs.helpers.functions.file_etag import async_get_etag
 from custom_components.hacs.helpers.functions.logger import getLogger
 from custom_components.hacs.helpers.functions.path_exsist import async_path_exsist
 from custom_components.hacs.share import get_hacs
