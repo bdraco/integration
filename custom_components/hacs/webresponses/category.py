@@ -1,9 +1,10 @@
-from aiohttp import web
 import mimetypes
+
+from aiohttp import web
+
+from custom_components.hacs.helpers.functions.file_etag import async_get_etag
 from custom_components.hacs.helpers.functions.logger import getLogger
 from custom_components.hacs.helpers.functions.path_exsist import async_path_exsist
-from custom_components.hacs.helpers.functions.file_etag import async_get_etag
-
 from custom_components.hacs.share import get_hacs
 
 _LOGGER = getLogger()
@@ -67,29 +68,24 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
         response.content_length = None
 
         _LOGGER.debug(
-            "Serving %s from %s with etag %s (not-modified) request.headers=%s response.headers=%s",
+            "Serving %s from %s with etag %s (not-modified)",
             requested_file,
             servefile,
             etag,
-            request.headers,
-            response.headers            
         )
         return response
 
     if etag is not None:
-
         response = web.FileResponse(servefile)
         response.headers["Cache-Control"] = "no-cache"
         response.headers["Etag"] = etag
 
         _LOGGER.debug(
-            "Serving %s from %s with etag %s (not cached) request.headers=%s response.headers=%s",
+            "Serving %s from %s with etag %s (not cached)",
             requested_file,
             servefile,
             etag,
-            request.headers,
-            response.headers
-        )        
+        )
         return response
 
     _LOGGER.error(
