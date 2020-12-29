@@ -41,14 +41,14 @@ async def async_serve_static_file_with_cache_header(
 ):
     """Serve a static file without an etag."""
     if await async_path_exsist(servefile):
-        _LOGGER.debug("Serving %s from %s", requested_file, servefile)
-        response = web.FileResponse(servefile)
-        response.headers["Cache-Control"] = cache_header
-        return response
+        _LOGGER.error(
+            "%s tried to request '%s' but the file does not exist",
+            request.remote,
+            servefile,
+        )
+        return None
 
-    _LOGGER.error(
-        "%s tried to request '%s' but the file does not exist",
-        request.remote,
-        servefile,
-    )
-    return None
+    _LOGGER.debug("Serving %s from %s", requested_file, servefile)
+    response = web.FileResponse(servefile)
+    response.headers["Cache-Control"] = cache_header
+    return response
