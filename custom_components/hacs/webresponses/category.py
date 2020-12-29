@@ -64,7 +64,12 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
             etag,
         )
         response = web.StreamResponse(status=304)
-        response.content_type = mimetypes.guess_type(servefile)[0]
+        # If we do not set a content-type, aiohttp
+        # will default to "application/octet-stream" which
+        # is likely not what we want
+        content_type, _ = mimetypes.guess_type(servefile)[0]
+        if content_type:
+            response.content_type = content_type
         response.content_length = None
         return response
 
