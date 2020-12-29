@@ -57,12 +57,7 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
         and if_none_match_header is not None
         and _match_etag(etag, if_none_match_header)
     ):
-        _LOGGER.debug(
-            "Serving %s from %s with etag %s (not-modified)",
-            requested_file,
-            servefile,
-            etag,
-        )
+
         response = web.StreamResponse(status=304)
         # If we do not set a content-type, aiohttp
         # will default to "application/octet-stream" which
@@ -71,19 +66,31 @@ async def async_serve_static_file_with_etag(request, servefile, requested_file):
         if content_type:
             response.content_type = content_type
         response.content_length = None
-        return response
 
-    if etag is not None:
         _LOGGER.debug(
-            "Serving %s from %s with etag %s (not cached) headers=%s",
+            "Serving %s from %s with etag %s (not-modified) request.headers=%s response.headers=%s",
             requested_file,
             servefile,
             etag,
-            request.headers
+            request.headers,
+            response.headers            
         )
+        return response
+
+    if etag is not None:
+
         response = web.FileResponse(servefile)
         response.headers["Cache-Control"] = "no-cache"
         response.headers["Etag"] = etag
+
+        _LOGGER.debug(
+            "Serving %s from %s with etag %s (not cached) request.headers=%s response.headers=%s",
+            requested_file,
+            servefile,
+            etag,
+            request.headers,
+            response.headers
+        )        
         return response
 
     _LOGGER.error(
