@@ -24,7 +24,7 @@ async def async_serve_category_file(request, requested_file):
         else:
             servefile = f"{hacs.core.config_path}/www/community/{requested_file}"
             cache_header = LONG_LIVE_CACHE_CONTROL
-        response = await async_serve_static_file(
+        response = await async_serve_static_file_with_cache_header(
             request, servefile, requested_file, cache_header
         )
     except (Exception, BaseException):
