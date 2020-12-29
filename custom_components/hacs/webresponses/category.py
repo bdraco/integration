@@ -20,9 +20,7 @@ async def async_serve_category_file(request, requested_file):
             response = await async_serve_static_file(request, servefile, requested_file)
         else:
             servefile = f"{hacs.core.config_path}/www/community/{requested_file}"
-            response = await async_serve_static_file_with_etag(
-                request, servefile, requested_file
-            )
+            response = await async_serve_static_file_no_cache(servefile, requested_file)
     except (Exception, BaseException):
         _LOGGER.exception("Error trying to serve %s", requested_file)
 
@@ -48,57 +46,14 @@ async def async_serve_static_file(request, servefile, requested_file):
     return None
 
 
-async def async_serve_static_file_with_etag(request, servefile, requested_file):
-    """Serve a static file with an etag."""
-    etag = await async_get_etag(servefile)
-    if_none_match_header = request.headers.get("if-none-match")
+async def async_serve_static_file_no_cache(servefile, requested_file):
+    """Serve a static file no cache."""
+    response = web.FileResponse(servefile)
+    response.headers["Cache-Control"] = "no-cache"
 
-    if (
-        etag is not None
-        and if_none_match_header is not None
-        and _match_etag(etag, if_none_match_header)
-    ):
-
-        response = web.StreamResponse(status=304)
-        # If we do not set a content-type, aiohttp
-        # will default to "application/octet-stream" which
-        # is likely not what we want
-        content_type, _ = mimetypes.guess_type(servefile)
-        response.content_type = content_type or "application/octet-stream"
-        response.content_length = None
-
-        _LOGGER.debug(
-            "Serving %s from %s with etag %s (not-modified)",
-            requested_file,
-            servefile,
-            etag,
-        )
-        return response
-
-    if etag is not None:
-        response = web.FileResponse(servefile)
-        response.headers["Cache-Control"] = "no-cache"
-        response.headers["Etag"] = etag
-
-        _LOGGER.debug(
-            "Serving %s from %s with etag %s (not cached)",
-            requested_file,
-            servefile,
-            etag,
-        )
-        return response
-
-    _LOGGER.error(
-        "%s tried to request '%s' but the file does not exist",
-        request.remote,
+    _LOGGER.debug(
+        "Serving %s from %s with etag %s (not cached)",
+        requested_file,
         servefile,
     )
-    return None
-
-
-def _match_etag(etag, if_none_match_header):
-    """Check to see if an etag matches."""
-    for if_none_match_ele in if_none_match_header.split(","):
-        if if_none_match_ele.strip() == etag:
-            return True
-    return False
+    return response
