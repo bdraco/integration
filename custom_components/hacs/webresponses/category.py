@@ -9,6 +9,9 @@ from custom_components.hacs.share import get_hacs
 
 _LOGGER = getLogger()
 
+LONG_LIVE_CACHE_CONTROL = "public, max-age=2678400"
+REVALIDATE_CACHE_CONTROL = "no-cache"
+
 
 async def async_serve_category_file(request, requested_file):
     hacs = get_hacs()
@@ -17,10 +20,13 @@ async def async_serve_category_file(request, requested_file):
     try:
         if requested_file.startswith("themes/"):
             servefile = f"{hacs.core.config_path}/{requested_file}"
-            response = await async_serve_static_file(request, servefile, requested_file)
+            cache_header = LONG_LIVE_CACHE_CONTROL
         else:
             servefile = f"{hacs.core.config_path}/www/community/{requested_file}"
-            response = await async_serve_static_file_no_cache(servefile, requested_file)
+            cache_header = LONG_LIVE_CACHE_CONTROL
+        response = await async_serve_static_file(
+            request, servefile, requested_file, cache_header
+        )
     except (Exception, BaseException):
         _LOGGER.exception("Error trying to serve %s", requested_file)
 
@@ -30,12 +36,14 @@ async def async_serve_category_file(request, requested_file):
     return web.Response(status=404)
 
 
-async def async_serve_static_file(request, servefile, requested_file):
+async def async_serve_static_file_with_cache_header(
+    request, servefile, requested_file, cache_header
+):
     """Serve a static file without an etag."""
     if await async_path_exsist(servefile):
         _LOGGER.debug("Serving %s from %s", requested_file, servefile)
         response = web.FileResponse(servefile)
-        response.headers["Cache-Control"] = "public, max-age=2678400"
+        response.headers["Cache-Control"] = cache_header
         return response
 
     _LOGGER.error(
@@ -44,16 +52,3 @@ async def async_serve_static_file(request, servefile, requested_file):
         servefile,
     )
     return None
-
-
-async def async_serve_static_file_no_cache(servefile, requested_file):
-    """Serve a static file no cache."""
-    response = web.FileResponse(servefile)
-    response.headers["Cache-Control"] = "no-cache"
-
-    _LOGGER.debug(
-        "Serving %s from %s with etag %s (not cached)",
-        requested_file,
-        servefile,
-    )
-    return response
