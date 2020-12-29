@@ -12,7 +12,6 @@ REVALIDATE_CACHE_CONTROL = "no-cache"
 
 async def async_serve_category_file(request, requested_file):
     hacs = get_hacs()
-    response = None
 
     try:
         if requested_file.startswith("themes/"):
@@ -21,29 +20,25 @@ async def async_serve_category_file(request, requested_file):
         else:
             servefile = f"{hacs.core.config_path}/www/community/{requested_file}"
             cache_header = REVALIDATE_CACHE_CONTROL
-        response = await async_serve_static_file_with_cache_header(
+        return await async_serve_static_file_with_cache_header(
             request, servefile, requested_file, cache_header
         )
     except (Exception, BaseException):
         _LOGGER.exception("Error trying to serve %s", requested_file)
-
-    if response is not None:
-        return response
-
-    return web.Response(status=404)
+        return web.Response(status=500)
 
 
 async def async_serve_static_file_with_cache_header(
     request, servefile, requested_file, cache_header
 ):
     """Serve a static file without an etag."""
-    if await async_path_exsist(servefile):
+    if not await async_path_exsist(servefile):
         _LOGGER.error(
             "%s tried to request '%s' but the file does not exist",
             request.remote,
             servefile,
         )
-        return None
+        return web.Response(status=404)
 
     _LOGGER.debug("Serving %s from %s", requested_file, servefile)
     response = web.FileResponse(servefile)
