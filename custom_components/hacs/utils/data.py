@@ -270,7 +270,12 @@ class HacsData:
             and repo_data.get("category", category) is not None
         ]
         if register_coros:
-            await asyncio.gather(*(create_eager_task(coro) for coro in register_coros))
+            import time
+            for coro in register_coros:
+                now = time.monotonic()
+                LOGGER.warning("Registering unknown repositories")
+                await coro
+                LOGGER.warning("Registering unknown repositories took %s", time.monotonic() - now)
 
     @callback
     def async_restore_repository(self, entry: str, repository_data: dict[str, Any]):
